@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="App de cálculo de IMC, gordura corporal e dicas de saúde">
+  <title>App de Saúde Corporal</title>
+  <style>
+  :root {
+    --primary-color: #1e1e2f;
+    --secondary-color: #27293d;
+    --accent-color: #f06292;
+    --text-color: #ffffff;
+    --muted-text: #bbbbbb;
+    --border-color: #444;
+  }
+
+  [data-theme="light"] {
+    --primary-color: #ffffff;
+    --secondary-color: #f0f0f0;
+    --accent-color: #f06292;
+    --text-color: #111111;
+    --muted-text: #666;
+    --border-color: #ccc;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    transition: background 0.3s, color 0.3s;
+  }
+
+  header {
+    background-color: var(--primary-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    flex-wrap: wrap;
+  }
+
+  .theme-toggle {
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    border-radius: 30px;
+    padding: 0.4rem 1.2rem;
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+    cursor: pointer;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1rem;
+  }
+
+  .linha {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .coluna {
+    flex: 1;
+    min-width: 100%;
+    background-color: var(--secondary-color);
+    padding: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  }
+
+  label {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+  }
+
+  input[type="number"] {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    font-size: 1rem;
+  }
+
+  button[type="button"] {
+    background-color: var(--accent-color);
+    color: white;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    width: 100%;
+  }
+
+  canvas {
+    margin-top: 1rem;
+    width: 100% !important;
+    max-height: 300px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+
+  th, td {
+    padding: 0.6rem;
+    border: 1px solid var(--border-color);
+    text-align: center;
+  }
+
+  th {
+    background-color: var(--accent-color);
+    color: white;
+  }
+
+  .artigo {
+    background-color: var(--primary-color);
+    padding: 1.2rem;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+    font-size: 0.95rem;
+  }
+
+  .artigo h2, .artigo h3 {
+    margin-top: 0.8rem;
+  }
+
+  .artigo ul {
+    padding-left: 1.2rem;
+  }
+
+  @media (min-width: 768px) {
+    .coluna {
+      min-width: 300px;
+    }
+
+    .linha {
+      flex-direction: row;
+    }
+  }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>Saúde Corporal</h2>
+    <button class="theme-toggle" id="themeToggle">
+      <span id="themeIcon">🌙</span> Tema
+    </button>
+  </header>
+
+  <div class="container">
+    <div class="linha">
+      <div class="coluna">
+        <label for="peso">Peso (kg)</label>
+        <input type="number" id="peso" placeholder="Ex: 70">
+
+        <label for="altura">Altura (m)</label>
+        <input type="number" id="altura" placeholder="Ex: 1.75">
+
+        <button type="button" onclick="calcularIMC()">Calcular</button>
+
+        <div id="resultado"></div>
+        <canvas id="graficoDonut"></canvas>
+      </div>
+
+      <div class="coluna">
+        <h2>Tabela de IMC</h2>
+        <table>
+          <thead>
+            <tr><th>IMC</th><th>Classificação</th><th>Situação</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>&lt; 18,5</td><td>Abaixo do peso</td><td>Ruim</td></tr>
+            <tr><td>18,5 - 24,9</td><td>Peso normal</td><td>Bom</td></tr>
+            <tr><td>25,0 - 29,9</td><td>Sobrepeso</td><td>Atenção</td></tr>
+            <tr><td>30,0 - 34,9</td><td>Obesidade I</td><td>Ruim</td></tr>
+            <tr><td>35,0 - 39,9</td><td>Obesidade II</td><td>Alto Risco</td></tr>
+            <tr><td>&ge; 40</td><td>Obesidade III</td><td>Grave</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="artigo">
+        <h2>🥗 Dicas para Perder Peso com Saúde</h2>
+        <ul>
+          <li>✅ <strong>Coma mais alimentos naturais:</strong> frutas, legumes, verduras e alimentos integrais.</li>
+          <li>✅ <strong>Beba bastante água:</strong> hidratação é essencial para evitar confusão entre fome e sede.</li>
+          <li>✅ <strong>Faça refeições regulares:</strong> evita exageros e mantém o metabolismo ativo.</li>
+          <li>✅ <strong>Pratique atividade física:</strong> o importante é se mover todos os dias, mesmo que seja só uma caminhada.</li>
+          <li>✅ <strong>Durma bem:</strong> noites bem dormidas ajudam a regular o apetite.</li>
+        </ul>
+
+        <h3>🍽️ Receitas Leves</h3>
+        <p><strong>🥗 Salada de Grão-de-Bico:</strong> Grão-de-bico cozido, tomate, pepino, salsinha, limão e azeite. Misture tudo e sirva gelado.</p>
+        <p><strong>🍳 Omelete Fit:</strong> 2 ovos, espinafre e ricota. Bata, tempere e leve à frigideira.</p>
+        <p><strong>🍌 Panqueca de Banana:</strong> 1 banana amassada, 1 ovo e aveia. Misture e asse em frigideira untada.</p>
+
+        
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const html = document.documentElement;
+    const themeToggle = document.getElementById("themeToggle");
+    const themeIcon = document.getElementById("themeIcon");
+
+    themeToggle.addEventListener("click", () => {
+      const atual = html.getAttribute("data-theme");
+      const novo = atual === "dark" ? "light" : "dark";
+      html.setAttribute("data-theme", novo);
+      themeIcon.textContent = novo === "dark" ? "🌙" : "☀️";
+      atualizarGrafico();
+    });
+
+    let grafico;
+    let massaGordaGlobal = 0;
+    let massaMagraGlobal = 0;
+
+    function calcularIMC() {
+      const peso = parseFloat(document.getElementById("peso").value);
+      const altura = parseFloat(document.getElementById("altura").value);
+      if (!peso || !altura) return;
+
+      const imc = peso / (altura * altura);
+      const gorduraPercentual = (1.2 * imc + 0.23 * 30 - 10.8 * 1 - 5.4).toFixed(2);
+      const massaGorda = peso * (gorduraPercentual / 100);
+      const massaMagra = peso - massaGorda;
+
+      massaGordaGlobal = massaGorda;
+      massaMagraGlobal = massaMagra;
+
+      document.getElementById("resultado").innerHTML = `
+        <p><strong>IMC:</strong> ${imc.toFixed(2)}</p>
+        <p><strong>% Gordura Estimada:</strong> ${gorduraPercentual}%</p>
+        <p><strong>Massa Gorda:</strong> ${massaGorda.toFixed(1)} kg</p>
+        <p><strong>Massa Magra:</strong> ${massaMagra.toFixed(1)} kg</p>
+      `;
+
+      desenharGrafico();
+    }
+
+    function desenharGrafico() {
+      const ctx = document.getElementById("graficoDonut").getContext("2d");
+      const corTexto = getComputedStyle(document.body).getPropertyValue("--text-color").trim();
+
+      if (grafico) grafico.destroy();
+
+      grafico = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: ["Gordura", "Massa Magra"],
+          datasets: [{
+            data: [massaGordaGlobal, massaMagraGlobal],
+            backgroundColor: ["#f06292", "#4cafff"],
+            borderWidth: 2
+          }]
+        },
+        options: {
+          plugins: {
+            legend: {
+              labels: {
+                color: corTexto
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function atualizarGrafico() {
+      if (massaGordaGlobal && massaMagraGlobal) {
+        desenharGrafico();
+      }
+    }
+  </script>
+</body>
+</html>
